@@ -34,6 +34,8 @@
 #include <zephyr/arch/sparc/arch_inlines.h>
 #elif defined(CONFIG_RX)
 #include <zephyr/arch/rx/arch_inlines.h>
+#elif defined(CONFIG_METAG)
+#include <zephyr/arch/metag/arch_inlines.h>
 #elif defined(CONFIG_ARCH_IS_SET)
 #error "The selected architecture is missing from this dispatch header"
 #endif
