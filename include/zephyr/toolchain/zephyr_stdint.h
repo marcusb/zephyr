@@ -20,6 +20,19 @@
  * If the compiler does not define __SIZEOF_INT__ deduce it from __INT_MAX__
  * or INT_MAX.
  */
+#ifndef __SIZEOF_LONG__
+#define __SIZEOF_LONG__ 4
+#endif
+#ifndef __SIZEOF_LONG_LONG__
+#define __SIZEOF_LONG_LONG__ 8
+#endif
+#ifndef __SIZEOF_SHORT__
+#define __SIZEOF_SHORT__ 2
+#endif
+#ifndef __SIZEOF_POINTER__
+#define __SIZEOF_POINTER__ 4
+#endif
+
 #if !defined(__SIZEOF_INT__)
 
 #if defined(__INT_MAX__)
