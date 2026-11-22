@@ -60,7 +60,8 @@
 
 #elif defined(__LITTLE_ENDIAN__) || defined(__ARMEL__) || \
       defined(__THUMBEL__) || defined(__AARCH64EL__) || \
-      defined(__MIPSEL__) || defined(__TC32EL__)
+      defined(__MIPSEL__) || defined(__TC32EL__) || \
+      defined(__metag__)
 
 #define __BYTE_ORDER__                  __ORDER_LITTLE_ENDIAN__
 
@@ -626,6 +627,17 @@ do {                                                                    \
 	__asm__ __volatile__(".global\t" #name                    \
 		"\n\t.equ\t" #name "," #value        \
 		"\n\t.type\t" #name ",#object")
+
+#elif defined(CONFIG_METAG)
+#define GEN_ABSOLUTE_SYM(name, value)               \
+	__asm__ __volatile__(".global\t" #name "\n\t.equ\t" #name \
+		",%0"                              \
+		"\n\t.type\t" #name ",@object" :  : "n"(value))
+
+#define GEN_ABSOLUTE_SYM_KCONFIG(name, value)       \
+	__asm__ __volatile__(".global\t" #name                    \
+		"\n\t.equ\t" #name "," #value       \
+		"\n\t.type\t" #name ",@object")
 
 #else
 #error processor architecture not supported
