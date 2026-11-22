@@ -1044,8 +1044,9 @@ add_dependencies(zephyr_interface
 zephyr_constants_library(
   NAME offsets
   SOURCE ${ARCH_DIR}/${ARCH}/core/offsets/offsets.c
-  INCLUDES ${ARCH_DIR}/${ARCH}/include
-  INCLUDES ${ARCH_DIR}/common/include
+  INCLUDES
+    ${ARCH_DIR}/${ARCH}/include
+    ${ZEPHYR_BASE}/arch/common/include
   DEPENDS heap_constants
 )
 set(OFFSETS_LIB offsets)
