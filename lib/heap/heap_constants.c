@@ -28,6 +28,7 @@
  * kernel.h can compute exact heap sizes without any magic numbers.
  */
 
+#include <stdint.h>
 #include <gen_offset.h>
 #include <zephyr/sys/util.h>
 #include "heap.h"
