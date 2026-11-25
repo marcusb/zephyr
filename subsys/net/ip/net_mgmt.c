@@ -293,11 +293,12 @@ static int mgmt_event_wait_call(struct net_if *iface,
 	struct mgmt_event_wait sync_data = {
 		.sync_call = Z_SEM_INITIALIZER(sync_data.sync_call, 0, 1),
 	};
-	struct net_mgmt_event_callback sync = {
-		.sync_call = &sync_data.sync_call,
-		.event_mask = mgmt_event_mask | NET_MGMT_SYNC_EVENT_BIT,
-	};
+	struct net_mgmt_event_callback sync;
 	int ret;
+
+	memset(&sync, 0, sizeof(sync));
+	sync.sync_call = &sync_data.sync_call;
+	sync.event_mask = mgmt_event_mask | NET_MGMT_SYNC_EVENT_BIT;
 
 	if (iface) {
 		sync_data.iface = iface;

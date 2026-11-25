@@ -537,9 +537,9 @@ static void scan_result_cb(struct net_if *iface, int status,
 	}
 
 	if (!entry) {
-		struct wifi_status scan_status = {
-			.status = status,
-		};
+		struct wifi_status scan_status;
+
+		scan_status.status = status;
 
 		net_mgmt_event_notify_with_info(NET_EVENT_WIFI_SCAN_DONE,
 						iface, &scan_status,
@@ -603,9 +603,9 @@ NET_MGMT_REGISTER_REQUEST_HANDLER(NET_REQUEST_WIFI_DISCONNECT, wifi_disconnect);
 
 void wifi_mgmt_raise_connect_result_event(struct net_if *iface, int status)
 {
-	struct wifi_status cnx_status = {
-		.status = status,
-	};
+	struct wifi_status cnx_status;
+
+	cnx_status.status = status;
 
 #ifdef CONFIG_WIFI_NM_WPA_SUPPLICANT_ROAMING
 	if (status == 0) {
@@ -620,9 +620,9 @@ void wifi_mgmt_raise_connect_result_event(struct net_if *iface, int status)
 
 void wifi_mgmt_raise_disconnect_result_event(struct net_if *iface, int status)
 {
-	struct wifi_status cnx_status = {
-		.status = status,
-	};
+	struct wifi_status cnx_status;
+
+	cnx_status.status = status;
 
 	net_mgmt_event_notify_with_info(NET_EVENT_WIFI_DISCONNECT_RESULT,
 					iface, &cnx_status,
@@ -1653,9 +1653,9 @@ void wifi_mgmt_raise_raw_scan_result_event(struct net_if *iface,
 void wifi_mgmt_raise_disconnect_complete_event(struct net_if *iface,
 					       int status)
 {
-	struct wifi_status cnx_status = {
-		.status = status,
-	};
+	struct wifi_status cnx_status;
+
+	cnx_status.status = status;
 
 	net_mgmt_event_notify_with_info(NET_EVENT_WIFI_DISCONNECT_COMPLETE,
 					iface, &cnx_status,
@@ -1665,9 +1665,9 @@ void wifi_mgmt_raise_disconnect_complete_event(struct net_if *iface,
 void wifi_mgmt_raise_ap_enable_result_event(struct net_if *iface,
 					    enum wifi_ap_status status)
 {
-	struct wifi_status cnx_status = {
-		.status = status,
-	};
+	struct wifi_status cnx_status;
+
+	cnx_status.status = status;
 
 	net_mgmt_event_notify_with_info(NET_EVENT_WIFI_AP_ENABLE_RESULT,
 					iface, &cnx_status,
@@ -1677,9 +1677,9 @@ void wifi_mgmt_raise_ap_enable_result_event(struct net_if *iface,
 void wifi_mgmt_raise_ap_disable_result_event(struct net_if *iface,
 					     enum wifi_ap_status status)
 {
-	struct wifi_status cnx_status = {
-		.status = status,
-	};
+	struct wifi_status cnx_status;
+
+	cnx_status.status = status;
 
 	net_mgmt_event_notify_with_info(NET_EVENT_WIFI_AP_DISABLE_RESULT,
 					iface, &cnx_status,

@@ -236,12 +236,10 @@ static int ethernet_mcast_filter_set(struct net_if *iface,
 				     const struct net_eth_addr *mac_addr,
 				     bool is_joined)
 {
-	struct ethernet_config cfg = {
-		.filter = {
-			.set = is_joined,
-			.type = ETHERNET_FILTER_TYPE_DST_MAC_ADDRESS,
-		},
-	};
+	struct ethernet_config cfg;
+	memset(&cfg, 0, sizeof(cfg));
+	cfg.filter.set = is_joined;
+	cfg.filter.type = ETHERNET_FILTER_TYPE_DST_MAC_ADDRESS;
 	const struct device *dev = net_if_get_device(iface);
 	const struct ethernet_api *api;
 
