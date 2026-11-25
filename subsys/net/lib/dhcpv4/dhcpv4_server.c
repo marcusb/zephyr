@@ -1767,9 +1767,8 @@ int net_dhcpv4_server_start(struct net_if *iface, struct net_in_addr *base_addr)
 	for (int i = 0; i < ARRAY_SIZE(server_ctx[slot].addr_pool); i++) {
 		reset_slot(&server_ctx[slot].addr_pool[i]);
 
-		struct net_in_addr temp_addr = {
-			.s_addr = net_htonl(net_ntohl(base_addr->s_addr) + i)
-		};
+		struct net_in_addr temp_addr;
+		temp_addr.s_addr = net_htonl(net_ntohl(base_addr->s_addr) + i);
 
 		LOG_DBG("\t%2d: %s", i, net_sprint_ipv4_addr(&temp_addr));
 	}

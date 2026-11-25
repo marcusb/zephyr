@@ -283,9 +283,9 @@ unlock:
 }
 
 static const struct fd_op_vtable zvfs_eventfd_fd_vtable = {
-	.read = zvfs_eventfd_read_op,
-	.write = zvfs_eventfd_write_op,
-	.close = zvfs_eventfd_close_op,
+	{ .read = zvfs_eventfd_read_op },
+	{ .write = zvfs_eventfd_write_op },
+	{ .close = zvfs_eventfd_close_op },
 	.ioctl = zvfs_eventfd_ioctl_op,
 };
 

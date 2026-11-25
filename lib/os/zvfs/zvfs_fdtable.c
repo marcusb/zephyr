@@ -601,8 +601,8 @@ static int stdinout_ioctl_vmeth(void *obj, unsigned int request, va_list args)
 }
 
 static const struct fd_op_vtable stdinout_fd_op_vtable = {
-	.read = stdinout_read_vmeth,
-	.write = stdinout_write_vmeth,
+	{ .read = stdinout_read_vmeth },
+	{ .write = stdinout_write_vmeth },
 	.ioctl = stdinout_ioctl_vmeth,
 };
 

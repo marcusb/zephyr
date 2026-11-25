@@ -3607,9 +3607,9 @@ static int sock_getsockname_vmeth(void *obj, struct net_sockaddr *addr,
 
 const struct socket_op_vtable sock_fd_op_vtable = {
 	.fd_vtable = {
-		.read = sock_read_vmeth,
-		.write = sock_write_vmeth,
-		.close2 = sock_close2_vmeth,
+		{ .read = sock_read_vmeth },
+		{ .write = sock_write_vmeth },
+		{ .close2 = sock_close2_vmeth },
 		.ioctl = sock_ioctl_vmeth,
 	},
 	.shutdown = sock_shutdown_vmeth,

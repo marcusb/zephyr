@@ -1627,7 +1627,9 @@ void http_server_remove_dot_segments(char *path)
 {
 	char *in = path;
 	char *out = path;
-	char *query = strpbrk(path, "?#");
+	char *q1 = strchr(path, '?');
+	char *q2 = strchr(path, '#');
+	char *query = (q1 && q2) ? (q1 < q2 ? q1 : q2) : (q1 ? q1 : q2);
 	size_t qtail_len = (query != NULL) ? strlen(query) : 0;
 
 	while ((*in != '\0') && (in != query)) {
