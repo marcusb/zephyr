@@ -245,36 +245,30 @@ extern "C" {
  *
  */
 struct spi_cs_control {
-	union {
-		struct {
-			/**
-			 * GPIO devicetree specification of CS GPIO.
-			 * The device pointer can be set to NULL to fully inhibit CS control if
-			 * necessary. The GPIO flags GPIO_ACTIVE_LOW/GPIO_ACTIVE_HIGH should be
-			 * equivalent to SPI_CS_ACTIVE_HIGH/SPI_CS_ACTIVE_LOW options in struct
-			 * spi_config.
-			 */
-			struct gpio_dt_spec gpio;
-			/**
-			 * Delay in microseconds to wait before starting the
-			 * transmission and before releasing the CS line.
-			 */
-			uint32_t delay;
-		};
-		struct {
-			/**
-			 * CS enable lead time, i.e. how long should the CS be asserted
-			 * before the first clock. Specified in nanoseconds.
-			 */
-			uint32_t setup_ns;
-			/**
-			 * CS enable lag time, i.e. how long should the CS be asserted
-			 * after the last clock, before the CS de-asserts.
-			 * Specified in nanoseconds.
-			 */
-			uint32_t hold_ns;
-		};
-	};
+	/**
+	 * GPIO devicetree specification of CS GPIO.
+	 * The device pointer can be set to NULL to fully inhibit CS control if
+	 * necessary. The GPIO flags GPIO_ACTIVE_LOW/GPIO_ACTIVE_HIGH should be
+	 * equivalent to SPI_CS_ACTIVE_HIGH/SPI_CS_ACTIVE_LOW options in struct
+	 * spi_config.
+	 */
+	struct gpio_dt_spec gpio;
+	/**
+	 * Delay in microseconds to wait before starting the
+	 * transmission and before releasing the CS line.
+	 */
+	uint32_t delay;
+	/**
+	 * CS enable lead time, i.e. how long should the CS be asserted
+	 * before the first clock. Specified in nanoseconds.
+	 */
+	uint32_t setup_ns;
+	/**
+	 * CS enable lag time, i.e. how long should the CS be asserted
+	 * after the last clock, before the CS de-asserts.
+	 * Specified in nanoseconds.
+	 */
+	uint32_t hold_ns;
 	/* To keep track of which form of this struct is valid */
 	bool cs_is_gpio;
 };
