@@ -16,9 +16,9 @@ menuconfig SPI_FLASH_AT45
 	  JEDEC ID, chip capacity, block and page size etc. configured
 	  accordingly.
 
-	  The driver is only capable of using "power of 2" binary page sizes
-	  in those chips and at initialization configures them to work in
-	  that mode (unless it is already done).
+	  The driver supports both standard DataFlash page sizes (e.g. 264, 528)
+	  and "power of 2" binary page sizes (e.g. 256, 512) according to the
+	  devicetree page-size property.
 
 if SPI_FLASH_AT45
 

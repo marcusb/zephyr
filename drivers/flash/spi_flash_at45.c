@@ -8,6 +8,7 @@
 #include <zephyr/drivers/spi.h>
 #include <zephyr/pm/device.h>
 #include <zephyr/sys/byteorder.h>
+#include <zephyr/sys/util.h>
 #include <zephyr/logging/log.h>
 
 LOG_MODULE_REGISTER(spi_flash_at45, CONFIG_FLASH_LOG_LEVEL);
@@ -77,6 +78,7 @@ struct spi_flash_at45_config {
 	uint32_t sector_0a_size;
 	uint16_t block_size;
 	uint16_t page_size;
+	uint8_t page_offset_bits;
 	bool no_chip_erase;
 	bool no_sector_erase;
 	uint16_t t_enter_dpd; /* in microseconds */
@@ -199,6 +201,15 @@ static int wait_until_ready(const struct device *dev)
 	return err;
 }
 
+static uint32_t encode_address(const struct spi_flash_at45_config *cfg,
+			       off_t offset)
+{
+	uint32_t page = (uint32_t)offset / cfg->page_size;
+	uint32_t byte_off = (uint32_t)offset % cfg->page_size;
+
+	return (page << cfg->page_offset_bits) | byte_off;
+}
+
 static int configure_page_size(const struct device *dev)
 {
 	const struct spi_flash_at45_config *cfg = dev->config;
@@ -216,6 +227,16 @@ static int configure_page_size(const struct device *dev)
 	err = read_status_register(dev, &status);
 	if (err != 0) {
 		return err;
+	}
+
+	if (!IS_POWER_OF_TWO(cfg->page_size)) {
+		if (status & STATUS_REG_LSB_PAGE_SIZE_BIT) {
+			LOG_ERR("Device configured for binary page size, "
+				"expected standard %u-byte page size",
+				cfg->page_size);
+			return -ENODEV;
+		}
+		return 0;
 	}
 
 	/* If the device is already configured for "power of 2" binary
@@ -251,11 +272,12 @@ static int spi_flash_at45_read(const struct device *dev, off_t offset,
 		return -ENODEV;
 	}
 
+	uint32_t addr = encode_address(cfg, offset);
 	uint8_t const op_and_addr[] = {
 		CMD_READ,
-		(offset >> 16) & 0xFF,
-		(offset >> 8)  & 0xFF,
-		(offset >> 0)  & 0xFF,
+		(addr >> 16) & 0xFF,
+		(addr >> 8)  & 0xFF,
+		(addr >> 0)  & 0xFF,
 	};
 	const struct spi_buf tx_buf[] = {
 		{
@@ -292,13 +314,14 @@ static int perform_write(const struct device *dev, off_t offset,
 {
 	const struct spi_flash_at45_config *cfg = dev->config;
 	int err;
+	uint32_t addr = encode_address(cfg, offset);
 	uint8_t const op_and_addr[] = {
 		IS_ENABLED(CONFIG_SPI_FLASH_AT45_USE_READ_MODIFY_WRITE)
 			? CMD_MODIFY
 			: CMD_WRITE,
-		(offset >> 16) & 0xFF,
-		(offset >> 8)  & 0xFF,
-		(offset >> 0)  & 0xFF,
+		(addr >> 16) & 0xFF,
+		(addr >> 8)  & 0xFF,
+		(addr >> 0)  & 0xFF,
 	};
 	const struct spi_buf tx_buf[] = {
 		{
@@ -343,8 +366,7 @@ static int spi_flash_at45_write(const struct device *dev, off_t offset,
 
 	while (len) {
 		size_t chunk_len = len;
-		off_t current_page_start =
-			offset - (offset & (cfg->page_size - 1));
+		off_t current_page_start = offset - (offset % cfg->page_size);
 		off_t current_page_end = current_page_start + cfg->page_size;
 
 		if (chunk_len > (current_page_end - offset)) {
@@ -400,7 +422,7 @@ static bool is_erase_possible(size_t entity_size,
 			      off_t offset, size_t requested_size)
 {
 	return (requested_size >= entity_size &&
-		(offset & (entity_size - 1)) == 0);
+		(offset % entity_size) == 0);
 }
 
 static int perform_erase_op(const struct device *dev, uint8_t opcode,
@@ -408,11 +430,12 @@ static int perform_erase_op(const struct device *dev, uint8_t opcode,
 {
 	const struct spi_flash_at45_config *cfg = dev->config;
 	int err;
+	uint32_t addr = encode_address(cfg, offset);
 	uint8_t const op_and_addr[] = {
 		opcode,
-		(offset >> 16) & 0xFF,
-		(offset >> 8)  & 0xFF,
-		(offset >> 0)  & 0xFF,
+		(addr >> 16) & 0xFF,
+		(addr >> 8)  & 0xFF,
+		(addr >> 0)  & 0xFF,
 	};
 	const struct spi_buf tx_buf[] = {
 		{
@@ -462,19 +485,31 @@ static int spi_flash_at45_erase(const struct device *dev, off_t offset,
 	} else {
 		while (size) {
 			size_t sector_size = cfg->sector_size;
+			bool can_sector_erase = false;
 
-			if (cfg->sector_0a_size) {
-				if (offset < cfg->sector_0a_size) {
-					sector_size = cfg->sector_0a_size;
-				} else if (offset < cfg->sector_size) {
-					/* Sector 0b. Calculate its size. */
-					sector_size -= cfg->sector_0a_size;
+			if (!cfg->no_sector_erase) {
+				if (cfg->sector_0a_size &&
+				    offset < cfg->sector_size) {
+					if (offset == 0 &&
+					    size >= cfg->sector_0a_size) {
+						sector_size =
+							cfg->sector_0a_size;
+						can_sector_erase = true;
+					} else if (offset ==
+						   cfg->sector_0a_size &&
+						   size >= (cfg->sector_size -
+							    cfg->sector_0a_size)) {
+						sector_size = cfg->sector_size -
+							      cfg->sector_0a_size;
+						can_sector_erase = true;
+					}
+				} else if (is_erase_possible(sector_size,
+							     offset, size)) {
+					can_sector_erase = true;
 				}
 			}
 
-			if (!cfg->no_sector_erase &&
-			    is_erase_possible(sector_size,
-					      offset, size)) {
+			if (can_sector_erase) {
 				err = perform_erase_op(dev, CMD_SECTOR_ERASE,
 						       offset);
 				offset += sector_size;
@@ -712,6 +747,7 @@ static DEVICE_API(flash, spi_flash_at45_api) = {
 				* DT_INST_PROP(idx, page_size),		     \
 		.block_size     = DT_INST_PROP(idx, block_size),	     \
 		.page_size      = DT_INST_PROP(idx, page_size),		     \
+		.page_offset_bits = LOG2CEIL(DT_INST_PROP(idx, page_size)),  \
 		.no_chip_erase  = DT_INST_PROP(idx, no_chip_erase),	     \
 		.no_sector_erase = DT_INST_PROP(idx, no_sector_erase),	     \
 		.t_enter_dpd = DIV_ROUND_UP(				     \
